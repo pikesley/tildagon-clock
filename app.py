@@ -11,6 +11,7 @@ import app
 
 from .lib.circle import Circle
 from .lib.gamma import gamma_corrections
+from .lib.line import Line
 from .lib.rgb_from_hue import rgb_from_degrees
 
 g = 9.806
@@ -26,7 +27,7 @@ class Clock(app.App):
         self.button_states = Buttons(self)
         self.top = 0
         self.radius = 120
-        self.blob_radius = 6
+        self.blob_radius = 10
         self.blob_offset = self.radius - self.blob_radius - 1
         self.colour_offset = 0
         self.colour_increment = 1
@@ -37,14 +38,17 @@ class Clock(app.App):
             "hour": {
                 "distance": 40,
                 "blob-size": 8,
+                "width": 8,
             },
             "minute": {
                 "distance": 70,
                 "blob-size": 8,
+                "width": 4,
             },
             "second": {
                 "distance": 80,
                 "blob-size": 8,
+                "width": 2,
             },
         }
 
@@ -65,52 +69,54 @@ class Clock(app.App):
 
         now = localtime()
 
-        # now = (2025, 1, 20, 18, 15, 32, 0, 20)
-
         hours = now[3]
         minutes = now[4]
         seconds = now[5]
 
-        self.hour_hand(ctx, hours, minutes, seconds)
-        self.minute_hand(ctx, minutes, seconds)
-        self.second_hand(ctx, seconds)
+        self.hour_hand(hours, minutes, seconds)
+        self.minute_hand(minutes, seconds)
+        self.second_hand(seconds)
 
         self.draw_overlays(ctx)
         tildagonos.leds.write()
 
         self.colour_offset = (self.colour_offset + self.colour_increment) % 360
 
-    def second_hand(self, ctx, seconds):
+    def second_hand(self, seconds):
         """Draw the second hand."""
-        self.draw_hand(ctx, "second", seconds * 6)
+        self.draw_hand("second", seconds * 6)
 
-    def minute_hand(self, ctx, minutes, seconds):
+    def minute_hand(self, minutes, seconds):
         """Draw the minute hand."""
-        self.draw_hand(ctx, "minute", ((minutes * 60) + seconds) / 10)
+        self.draw_hand("minute", ((minutes * 60) + seconds) / 10)
 
-    def hour_hand(self, ctx, hours, minutes, seconds):
+    def hour_hand(self, hours, minutes, seconds):
         """Draw the minute hand."""
-        self.draw_hand(ctx, "hour", ((hours * 3600) + (minutes * 60) + seconds) / 120)
+        self.draw_hand("hour", ((hours * 3600) + (minutes * 60) + seconds) / 120)
 
-    def draw_hand(self, ctx, key, amount):
+    def draw_hand(self, key, amount):
         """Draw a hand."""
-        x = sin(radians(amount)) * self.hands[key]["distance"]
-        y = cos(radians(amount)) * -self.hands[key]["distance"]
+        coords = {
+            "start": (
+                sin(radians(amount)) * -self.hands_extra,
+                cos(radians(amount)) * self.hands_extra,
+            ),
+            "end": (
+                sin(radians(amount)) * self.hands[key]["distance"],
+                cos(radians(amount)) * -self.hands[key]["distance"],
+            ),
+        }
+
         colour = rgb_from_degrees((180 - amount + self.colour_offset) % 360)
 
         self.overlays.append(
-            Circle(
-                radius=self.hands[key]["blob-size"],
-                centre=(x, y),
+            Line(
+                start=(coords["start"]),
+                end=coords["end"],
+                width=self.hands[key]["width"],
                 colour=colour,
-                filled=True,
             )
         )
-
-        ctx.rgb(*colour)
-        ctx.move_to(0, 0)
-        ctx.line_to(x, y)
-        ctx.stroke()
 
     def fill_screen(self, ctx, rgb):
         """Fill the screen."""

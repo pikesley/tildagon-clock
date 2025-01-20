@@ -4,16 +4,23 @@ import math
 class Circle:
     """A circle."""
 
-    def __init__(self, radius=0, centre=(0, 0), colour=(255, 0, 0), filled=False):  # noqa: FBT002
+    def __init__(
+        self,
+        radius=0,
+        centre=(0, 0),
+        colour=(255, 0, 0),
+        opacity=0.7,
+        filled=False,  # noqa: FBT002
+    ):
         """Construct."""
         self.x, self.y = centre
         self.radius = radius
-        self.colour = colour
+        self.colour = colour + [opacity]  # noqa: RUF005
         self.filled = filled
 
     def draw(self, ctx):
         """Draw ourself."""
-        entity = ctx.rgb(*self.colour).arc(
+        entity = ctx.rgba(*self.colour).arc(
             self.x,
             self.y,
             self.radius,
