@@ -32,7 +32,9 @@ class Clock(app.App):
         self.colour_offset = 0
         self.colour_increment = 1
         self.led_brightness = 0.5
-        self.hands_extra = 30
+        self.overhang = 20
+
+        self.fill_blobs = True
 
         self.hands = {
             "hour": {
@@ -57,6 +59,10 @@ class Clock(app.App):
         if self.button_states.get(BUTTON_TYPES["CANCEL"]):
             self.button_states.clear()
             self.minimise()
+
+        if self.button_states.get(BUTTON_TYPES["CONFIRM"]):
+            self.button_states.clear()
+            self.fill_blobs = not self.fill_blobs
 
     def draw(self, ctx):
         """Draw."""
@@ -94,20 +100,20 @@ class Clock(app.App):
         """Draw the minute hand."""
         self.draw_hand("hour", ((hours * 3600) + (minutes * 60) + seconds) / 120)
 
-    def draw_hand(self, key, amount):
+    def draw_hand(self, key, rotation):
         """Draw a hand."""
         coords = {
             "start": (
-                sin(radians(amount)) * -self.hands_extra,
-                cos(radians(amount)) * self.hands_extra,
+                sin(radians(rotation)) * -self.overhang,
+                cos(radians(rotation)) * self.overhang,
             ),
             "end": (
-                sin(radians(amount)) * self.hands[key]["distance"],
-                cos(radians(amount)) * -self.hands[key]["distance"],
+                sin(radians(rotation)) * self.hands[key]["distance"],
+                cos(radians(rotation)) * -self.hands[key]["distance"],
             ),
         }
 
-        colour = rgb_from_degrees((180 - amount + self.colour_offset) % 360)
+        colour = rgb_from_degrees((180 - rotation + self.colour_offset) % 360)
 
         self.overlays.append(
             Line(
@@ -134,6 +140,7 @@ class Clock(app.App):
                     radius=self.blob_radius,
                     centre=pair,
                     colour=rgb_from_degrees((i + self.colour_offset) % 360),
+                    filled=self.fill_blobs,
                 )
             )
 
