@@ -1,6 +1,7 @@
 from math import cos, radians, sin
 from time import localtime
 
+import ntptime
 from events.input import BUTTON_TYPES, Buttons
 from system.eventbus import eventbus
 from system.patterndisplay.events import PatternDisable
@@ -21,6 +22,7 @@ class Clock(app.App):
     def __init__(self):
         """Construct."""
         eventbus.emit(PatternDisable())
+        ntptime.settime()
         self.button_states = Buttons(self)
         self.top = 0
         self.radius = 120
@@ -32,9 +34,18 @@ class Clock(app.App):
         self.hands_extra = 30
 
         self.hands = {
-            "hour": {"distance": 60, "blob-size": 8, "colour": (255, 0, 0)},
-            "minute": {"distance": 70, "blob-size": 8, "colour": (0, 255, 0)},
-            "second": {"distance": 80, "blob-size": 8, "colour": (0, 0, 255)},
+            "hour": {
+                "distance": 40,
+                "blob-size": 8,
+            },
+            "minute": {
+                "distance": 70,
+                "blob-size": 8,
+            },
+            "second": {
+                "distance": 80,
+                "blob-size": 8,
+            },
         }
 
     def update(self, _):
@@ -85,18 +96,18 @@ class Clock(app.App):
         """Draw a hand."""
         x = sin(radians(amount)) * self.hands[key]["distance"]
         y = cos(radians(amount)) * -self.hands[key]["distance"]
+        colour = rgb_from_degrees((180 - amount + self.colour_offset) % 360)
 
         self.overlays.append(
             Circle(
                 radius=self.hands[key]["blob-size"],
                 centre=(x, y),
-                colour=self.hands[key]["colour"],
-                # colour=rgb_from_degrees((amount + self.colour_offset) % 360),
+                colour=colour,
                 filled=True,
             )
         )
 
-        ctx.rgb(*self.hands[key]["colour"])
+        ctx.rgb(*colour)
         ctx.move_to(0, 0)
         ctx.line_to(x, y)
         ctx.stroke()
