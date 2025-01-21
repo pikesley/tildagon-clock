@@ -15,7 +15,7 @@ class Circle:
         """Construct."""
         self.x, self.y = centre
         self.radius = radius
-        self.colour = colour + [opacity]  # noqa: RUF005
+        self.colour = list(colour) + [opacity]  # noqa: RUF005
         self.filled = filled
 
     def draw(self, ctx):

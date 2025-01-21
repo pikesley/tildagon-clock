@@ -1,3 +1,4 @@
+import json
 from math import cos, radians, sin
 from time import localtime
 
@@ -9,12 +10,16 @@ from tildagonos import tildagonos
 
 import app
 
-from .lib.circle import Circle
+from .lib.asset_path import ASSET_PATH
 from .lib.gamma import gamma_corrections
-from .lib.line import Line
-from .lib.rgb_from_hue import rgb_from_degrees
+from .lib.rgb_from_rotation import rgb_from_degrees
+from .lib.shapes.circle import Circle
+from .lib.shapes.hexagon import Hexagon
+from .lib.shapes.line import Line
+from .lib.shapes.triangle import Triangle
 
-g = 9.806
+with open(ASSET_PATH + "conf.json") as j:  # noqa: PTH123
+    conf = json.loads(j.read())
 
 
 class Clock(app.App):
@@ -24,35 +29,24 @@ class Clock(app.App):
         """Construct."""
         eventbus.emit(PatternDisable())
         ntptime.settime()
+        self.background_colour = conf["background-colour"]
+        self.overhang = conf["hands-overhang"]
+        self.blob_radius = conf["blob-radius"]
+        self.fill_blobs = conf["filled-blobs"]
+        self.add_hand_ends = conf["add-hand-ends"]
+        self.full_spectrum = conf["full-spectrum"]
+        self.hands = conf["hands"]
+        self.shapes = conf["shapes"]
+
         self.button_states = Buttons(self)
         self.top = 0
-        self.radius = 120
-        self.blob_radius = 10
+        self.radius = 118
         self.blob_offset = self.radius - self.blob_radius - 1
         self.colour_offset = 0
         self.colour_increment = 1
         self.led_brightness = 0.5
-        self.overhang = 20
 
-        self.fill_blobs = True
-
-        self.hands = {
-            "hour": {
-                "distance": 40,
-                "blob-size": 8,
-                "width": 8,
-            },
-            "minute": {
-                "distance": 70,
-                "blob-size": 8,
-                "width": 4,
-            },
-            "second": {
-                "distance": 80,
-                "blob-size": 8,
-                "width": 2,
-            },
-        }
+        self.rotation_offset = 0
 
     def update(self, _):
         """Update."""
@@ -64,11 +58,29 @@ class Clock(app.App):
             self.button_states.clear()
             self.fill_blobs = not self.fill_blobs
 
+        if self.button_states.get(BUTTON_TYPES["RIGHT"]):
+            self.button_states.clear()
+            self.add_hand_ends = not self.add_hand_ends
+
+        if self.button_states.get(BUTTON_TYPES["DOWN"]):
+            self.button_states.clear()
+            self.full_spectrum = not self.full_spectrum
+
+        if self.button_states.get(BUTTON_TYPES["UP"]):
+            self.button_states.clear()
+            self.shapes = rotate(self.shapes)
+
+        if self.button_states.get(BUTTON_TYPES["LEFT"]):
+            self.button_states.clear()
+            self.rotation_offset = (self.rotation_offset + 90) % 360
+
     def draw(self, ctx):
         """Draw."""
-        self.fill_screen(ctx, (0, 0, 0))
+        self.fill_screen(ctx, self.background_colour)
 
         self.overlays = []
+
+        ctx.image(ASSET_PATH + "background.png", -120, -120, 240, 240)
 
         self.draw_blobs()
         self.light_leds()
@@ -102,18 +114,21 @@ class Clock(app.App):
 
     def draw_hand(self, key, rotation):
         """Draw a hand."""
+        rotation = rotation + self.rotation_offset
         coords = {
             "start": (
                 sin(radians(rotation)) * -self.overhang,
                 cos(radians(rotation)) * self.overhang,
             ),
             "end": (
-                sin(radians(rotation)) * self.hands[key]["distance"],
-                cos(radians(rotation)) * -self.hands[key]["distance"],
+                sin(radians(rotation)) * self.hands[key]["length"],
+                cos(radians(rotation)) * -self.hands[key]["length"],
             ),
         }
 
-        colour = rgb_from_degrees((180 - rotation + self.colour_offset) % 360)
+        colour = rgb_from_degrees(self.colour_offset % 360)
+        if self.full_spectrum:
+            colour = rgb_from_degrees((180 - rotation + self.colour_offset) % 360)
 
         self.overlays.append(
             Line(
@@ -121,8 +136,44 @@ class Clock(app.App):
                 end=coords["end"],
                 width=self.hands[key]["width"],
                 colour=colour,
+                opacity=0.8,
             )
         )
+
+        if self.add_hand_ends:
+            if self.shapes[0] == "hexagons":
+                self.overlays.append(
+                    Hexagon(
+                        centre=coords["end"],
+                        radius=self.hands[key]["end-radius"],
+                        colour=colour,
+                        rotation=radians(rotation),
+                        filled=True,
+                        opacity=1.0,
+                    )
+                )
+            elif self.shapes[0] == "triangles":
+                self.overlays.append(
+                    Triangle(
+                        centre=coords["end"],
+                        height=self.blob_radius * 3,
+                        base=self.blob_radius * 2,
+                        colour=colour,
+                        rotation=radians(rotation),
+                        filled=True,
+                        opacity=1.0,
+                    )
+                )
+            else:
+                self.overlays.append(
+                    Circle(
+                        radius=self.hands[key]["end-radius"],
+                        centre=coords["end"],
+                        colour=colour,
+                        filled=True,
+                        opacity=1.0,
+                    )
+                )
 
     def fill_screen(self, ctx, rgb):
         """Fill the screen."""
@@ -130,29 +181,66 @@ class Clock(app.App):
 
     def draw_blobs(self):
         """Draw the number-ish bits."""
-        for i in range(0, 360, 30):
+        for angle in range(0, 360, 30):
+            rotation = angle + self.rotation_offset
             pair = (
-                sin(radians(i)) * self.blob_offset,
-                cos(radians(i)) * self.blob_offset,
+                sin(radians(rotation)) * self.blob_offset,
+                cos(radians(rotation)) * self.blob_offset,
             )
-            self.overlays.append(
-                Circle(
-                    radius=self.blob_radius,
-                    centre=pair,
-                    colour=rgb_from_degrees((i + self.colour_offset) % 360),
-                    filled=self.fill_blobs,
+
+            colour = rgb_from_degrees(self.colour_offset % 360)
+            if self.full_spectrum:
+                colour = rgb_from_degrees((rotation + self.colour_offset) % 360)
+
+            if self.shapes[0] == "hexagons":
+                self.overlays.append(
+                    Hexagon(
+                        centre=pair,
+                        radius=self.blob_radius,
+                        colour=colour,
+                        rotation=radians(-rotation),
+                        filled=self.fill_blobs,
+                    )
                 )
-            )
+
+            elif self.shapes[0] == "triangles":
+                self.overlays.append(
+                    Triangle(
+                        centre=pair,
+                        base=self.blob_radius * 2,
+                        colour=colour,
+                        rotation=radians(-rotation),
+                        filled=self.fill_blobs,
+                    )
+                )
+
+            else:
+                self.overlays.append(
+                    Circle(
+                        radius=self.blob_radius,
+                        centre=pair,
+                        colour=colour,
+                        filled=self.fill_blobs,
+                        opacity=1.0,
+                    )
+                )
 
     def light_leds(self):
         """Light the lights."""
         for i in range(12):
-            tildagonos.leds[12 - i] = [
-                gamma_corrections[int(c * 255 * self.led_brightness)]
-                for c in rgb_from_degrees(
+            colour = rgb_from_degrees(self.colour_offset % 360)
+            if self.full_spectrum:
+                colour = rgb_from_degrees(
                     ((i * 30) + 15 + 180 + self.colour_offset) % 360
                 )
+            tildagonos.leds[12 - i] = [
+                gamma_corrections[int(c * 255 * self.led_brightness)] for c in colour
             ]
+
+
+def rotate(array):
+    """Rotate a list."""
+    return array[1:] + [array[0]]
 
 
 __app_export__ = Clock

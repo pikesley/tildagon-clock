@@ -1,0 +1,34 @@
+{
+    "filled-blobs": true,
+    "add-hand-ends": false,
+    "full-spectrum": true,
+    "blob-radius": 12,
+    "hands-overhang": 20,
+    "background-colour": [
+        0,
+        0,
+        0
+    ],
+    "shapes": [
+        "hexagons",
+        "triangles",
+        "circles"
+    ],
+    "hands": {
+        "hour": {
+            "length": 50,
+            "width": 8,
+            "end-radius": 8
+        },
+        "minute": {
+            "length": 70,
+            "width": 4,
+            "end-radius": 4
+        },
+        "second": {
+            "length": 80,
+            "width": 2,
+            "end-radius": 2
+        }
+    }
+}

@@ -37,8 +37,3 @@ def rgb_from_degrees(degrees):
         offset = 1 - offset
 
     return [segment.get(x, offset) for x in ["red", "green", "blue"]]
-
-
-def rgb_from_hue(decimal):
-    """Get RGB from hue value (0.0 - 1.0)."""
-    return rgb_from_degrees((decimal * 360) % 360)
