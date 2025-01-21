@@ -98,7 +98,7 @@ class Clock(app.App):
         self.draw_overlays(ctx)
         tildagonos.leds.write()
 
-        self.colour_offset = (self.colour_offset + self.colour_increment) % 360
+        self.colour_offset = (self.colour_offset - self.colour_increment) % 360
 
     def second_hand(self, seconds):
         """Draw the second hand."""
@@ -156,7 +156,7 @@ class Clock(app.App):
                 self.overlays.append(
                     Triangle(
                         centre=coords["end"],
-                        height=self.blob_radius * 3,
+                        height=self.blob_radius * 2,
                         base=self.blob_radius * 2,
                         colour=colour,
                         rotation=radians(rotation),
