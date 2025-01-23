@@ -22,6 +22,7 @@ class Circle:
 
     def draw(self, ctx):
         """Draw ourself."""
+        # TODO: unify this with other shapes
         entity = ctx.rgba(*self.colour).arc(
             self.x,
             self.y,

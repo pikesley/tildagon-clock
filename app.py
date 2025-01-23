@@ -1,4 +1,5 @@
 import json
+from collections import OrderedDict
 from math import cos, radians, sin
 from time import localtime, ticks_ms
 
@@ -12,6 +13,7 @@ import app
 
 from .lib.asset_path import ASSET_PATH
 from .lib.background import Background
+from .lib.emf import EMF
 from .lib.gamma import gamma_corrections
 from .lib.rgb_from_rotation import rgb_from_degrees
 from .lib.shapes.line import Line
@@ -28,15 +30,6 @@ class Clock(app.App):
         """Construct."""
         eventbus.emit(PatternDisable())
         ntptime.settime()
-        self.background_colour = conf["background-colour"]
-
-        # how much hand sticks out beyond the centre
-        self.overhang = conf["hands-overhang"]
-        self.marker_size = conf["marker-size"]
-        self.fill_markers = conf["filled-markers"]
-
-        # rainbow or single-colour
-        self.full_spectrum = conf["full-spectrum"]
 
         self.button_states = Buttons(self)
 
@@ -47,7 +40,7 @@ class Clock(app.App):
         self.radius = 118
 
         # how far the markers are from the edge
-        self.marker_offset = self.radius - self.marker_size - 1
+        self.marker_offset = self.radius - conf["marker-size"] - 1
 
         # this increments to rotate the spectrum colours
         self.colour_offset = 0
@@ -56,21 +49,23 @@ class Clock(app.App):
         self.rotate_colours_clockwise = True
         self.led_brightness = 0.5
 
-        # how long to highlight the top marker when we rotate
-        self.rotation_notify = False
-        self.rotation_notify_timer = 0
-        self.rotation_notify_duration = 2000
+        self.notifiers = {
+            "rotation": {"enabled": False, "timer": 0, "duration": 1000},
+            "pulse": {"enabled": False, "timer": 0, "duration": 100},
+        }
 
         # how much to rotate the clock face
         self.rotation_offset = 0
+
+        self.new_second = False
+        self.previous_seconds = 0
+        self.pulse_size = 2
 
     def update(self, _):
         """Update."""
         self.scan_buttons()
 
-        # check if we've rotation-notified for long enough
-        if ticks_ms() - self.rotation_notify_timer > self.rotation_notify_duration:
-            self.rotation_notify = False
+        self.update_notifiers()
 
         # rotate the colours
         increment = (
@@ -86,38 +81,73 @@ class Clock(app.App):
         """Draw."""
         self.overlays = []
 
-        self.overlays.append(Background())
+        self.hours, self.minutes, self.seconds = localtime()[3:6]
+        self.overlays.append(Background(colour=conf["background-colour"]))
+
+        self.draw_brand()
 
         self.draw_markers()
         self.light_leds()
 
-        hours, minutes, seconds = localtime()[3:6]
+        rotations = OrderedDict(
+            {
+                "hour": ((self.hours * 3600) + (self.minutes * 60) + self.seconds)
+                / 120,
+                "minute": ((self.minutes * 60) + self.seconds) / 10,
+                "second": (self.seconds * 6) + self.overtick,
+            }
+        )
 
-        self.hour_hand(hours, minutes, seconds)
-        self.minute_hand(minutes, seconds)
-        self.second_hand(seconds)
+        for key, rotation in rotations.items():
+            self.draw_hand(key, rotation)
 
         self.draw_overlays(ctx)
 
-    def second_hand(self, seconds):
-        """Draw the second hand."""
-        self.draw_hand("second", seconds * 6)
+    def update_notifiers(self):
+        """Update the `notifiers`."""
+        for notifier in self.notifiers.values():
+            if ticks_ms() - notifier["timer"] > notifier["duration"]:
+                notifier["enabled"] = False
 
-    def minute_hand(self, minutes, seconds):
-        """Draw the minute hand."""
-        self.draw_hand("minute", ((minutes * 60) + seconds) / 10)
+    def set_notifier(self, name):
+        """Set notifier `name`."""
+        self.notifiers[name]["enabled"] = True
+        self.notifiers[name]["timer"] = ticks_ms()
 
-    def hour_hand(self, hours, minutes, seconds):
-        """Draw the minute hand."""
-        self.draw_hand("hour", ((hours * 3600) + (minutes * 60) + seconds) / 120)
+    @property
+    def overtick(self):
+        """Calculate overtick."""
+        overtick = 0
+        if self.seconds != self.previous_seconds:
+            self.new_second = True
+            self.previous_seconds = self.seconds
+            overtick = conf["overtick-amount"]
+        self.new_second = False
+
+        return overtick
+
+    def draw_brand(self):
+        """Write `EMF`."""
+        centre = (
+            -sin(radians(self.rotation_offset)) * conf["brand"]["y-offset"],
+            -cos(radians(-self.rotation_offset)) * conf["brand"]["y-offset"],
+        )
+        self.overlays.append(
+            EMF(
+                centre=centre,
+                scale=conf["brand"]["scale"],
+                rotation=radians(-self.rotation_offset),
+                colour=rgb_from_degrees(self.colour_offset),
+            )
+        )
 
     def draw_hand(self, key, rotation):
         """Draw a hand."""
         rotation = rotation - self.rotation_offset
         coords = {
             "start": (
-                sin(radians(rotation)) * -self.overhang,
-                cos(radians(rotation)) * self.overhang,
+                sin(radians(rotation)) * -conf["hands-overhang"],
+                cos(radians(rotation)) * conf["hands-overhang"],
             ),
             "end": (
                 sin(radians(rotation)) * conf["hands"][key]["length"],
@@ -126,7 +156,7 @@ class Clock(app.App):
         }
 
         colour = rgb_from_degrees(self.colour_offset % 360)
-        if self.full_spectrum:
+        if conf["full-spectrum"]:
             colour = rgb_from_degrees((180 - rotation + self.colour_offset) % 360)
 
         self.overlays.append(
@@ -149,13 +179,16 @@ class Clock(app.App):
             )
 
             colour = rgb_from_degrees(self.colour_offset % 360)
-            if self.full_spectrum:
+            if conf["full-spectrum"]:
                 colour = rgb_from_degrees((rotation + self.colour_offset) % 360)
 
-            size = self.marker_size
-            filled = self.fill_markers
+            size = conf["marker-size"]
+            if self.notifiers["pulse"]["enabled"]:
+                size += self.pulse_size
 
-            if self.rotation_notify and angle == 180:  # noqa: PLR2004
+            filled = conf["filled-markers"]
+
+            if self.notifiers["rotation"]["enabled"] and angle == 180:  # noqa: PLR2004
                 pair = (
                     sin(radians(rotation)) * (self.marker_offset - size),
                     cos(radians(rotation)) * (self.marker_offset - size),
@@ -176,7 +209,7 @@ class Clock(app.App):
         """Light the lights."""
         for i in range(12):
             colour = rgb_from_degrees(self.colour_offset % 360)
-            if self.full_spectrum:
+            if conf["full-spectrum"]:
                 # 30 degrees per light
                 # 15 degree offset to be between the markers
                 # 180 offset because the goddamn screen is upside-down
@@ -189,11 +222,11 @@ class Clock(app.App):
 
     def invert_fill_markers(self):
         """Invert marker-filling."""
-        self.fill_markers = not self.fill_markers
+        conf["filled-markers"] = not conf["filled-markers"]
 
     def invert_full_spectrum(self):
         """Invert full-spectrum."""
-        self.full_spectrum = not self.full_spectrum
+        conf["full-spectrum"] = not conf["full-spectrum"]
 
     def increment_shapes_index(self):
         """Increment shapes-index."""
@@ -206,8 +239,7 @@ class Clock(app.App):
     def rotate_clock_face(self):
         """Rotate the clock face."""
         self.rotation_offset = (self.rotation_offset - 30) % 360
-        self.rotation_notify = True
-        self.rotation_notify_timer = ticks_ms()
+        self.set_notifier("rotation")
 
     def scan_buttons(self):
         """Read the buttons."""
@@ -223,6 +255,7 @@ class Clock(app.App):
             if self.button_states.get(BUTTON_TYPES[button]):
                 self.button_states.clear()
                 method()
+                self.set_notifier("pulse")
 
 
 __app_export__ = Clock

@@ -1,26 +1,26 @@
 {
-    "filled-markers": true,
-    "full-spectrum": true,
-    "marker-size": 12,
-    "hands-overhang": 20,
-    "background-colour": [
-        0,
-        0,
-        0
-    ],
-
-    "hands": {
-        "hour": {
-            "length": 50,
-            "width": 8
-        },
-        "minute": {
-            "length": 70,
-            "width": 4
-        },
-        "second": {
-            "length": 80,
-            "width": 2
-        }
+  "background-colour": [0, 0, 0],
+  "filled-markers": false,
+  "full-spectrum": true,
+  "hands": {
+    "hour": {
+      "length": 50,
+      "width": 8
+    },
+    "minute": {
+      "length": 70,
+      "width": 4
+    },
+    "second": {
+      "length": 80,
+      "width": 2
     }
+  },
+  "hands-overhang": 20,
+  "brand": {
+    "scale": 8,
+    "y-offset": 40
+  },
+  "marker-size": 12,
+  "overtick-amount": 1.5
 }

@@ -1,12 +1,19 @@
 class EMF:
     """Letters."""
 
-    def __init__(
-        self, centre=(0, 0), scale=10.0, colour=(255, 0, 0), opacity=1.0, line_width=3
+    def __init__(  # noqa: PLR0913
+        self,
+        centre=(0, 0),
+        scale=10.0,
+        rotation=0,
+        colour=(255, 0, 0),
+        opacity=0.5,
+        line_width=1,
     ):
         """Construct."""
         self.centre = centre
         self.scale = scale
+        self.rotation = rotation
         self.colour = list(colour) + [opacity]  # noqa: RUF005
         self.line_width = line_width
 
@@ -15,6 +22,7 @@ class EMF:
         ctx.rgba(*self.colour).begin_path()
         ctx.line_width = self.line_width
         ctx.translate(*self.centre)
+        ctx.rotate(self.rotation)
 
         # E
         ctx.move_to(-1.5 * self.scale, -1 * self.scale)
