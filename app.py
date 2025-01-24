@@ -15,8 +15,8 @@ from .lib.asset_path import ASSET_PATH
 from .lib.background import Background
 from .lib.emf import EMF
 from .lib.gamma import gamma_corrections
+from .lib.hand import Hand
 from .lib.rgb_from_rotation import rgb_from_degrees
-from .lib.shapes.line import Line
 from .lib.shapes_list import shapes
 
 with open(ASSET_PATH + "conf.json") as j:  # noqa: PTH123
@@ -149,28 +149,21 @@ class Clock(app.App):
     def draw_hand(self, key, rotation):
         """Draw a hand."""
         rotation = rotation - self.rotation_offset
-        coords = {
-            "start": (
-                sin(radians(rotation)) * -conf["hands-overhang"],
-                cos(radians(rotation)) * conf["hands-overhang"],
-            ),
-            "end": (
-                sin(radians(rotation)) * conf["hands"][key]["length"],
-                cos(radians(rotation)) * -conf["hands"][key]["length"],
-            ),
-        }
 
         colour = rgb_from_degrees(self.colour_offset % 360)
         if conf["full-spectrum"]:
             colour = rgb_from_degrees((180 - rotation + self.colour_offset) % 360)
 
         self.overlays.append(
-            Line(
-                start=(coords["start"]),
-                end=coords["end"],
+            Hand(
+                rotation=radians(rotation),
                 width=conf["hands"][key]["width"],
+                principal_length=conf["hands"][key]["length"],
+                tail_length=conf["hands-overhang"],
                 colour=colour,
                 opacity=0.8,
+                            filled = True
+
             )
         )
 
@@ -205,6 +198,7 @@ class Clock(app.App):
                     centre=pair,
                     size=size,
                     colour=colour,
+                    # TODO: move this to the class
                     rotation=radians(-rotation),
                     filled=filled,
                 )

@@ -5,15 +5,15 @@
   "hands": {
     "hour": {
       "length": 50,
-      "width": 8
+      "width": 6
     },
     "minute": {
       "length": 70,
       "width": 4
     },
     "second": {
-      "length": 80,
-      "width": 2
+      "length": 85,
+      "width": 1
     }
   },
   "hands-overhang": 20,
