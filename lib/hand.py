@@ -12,6 +12,7 @@ class Hand:
         principal_length=70,
         rotation=0,
         tail_length=10,
+        taper_factor=0.6,
         width=10,
     ):
         """Construct."""
@@ -21,6 +22,7 @@ class Hand:
         self.colour = list(colour) + [opacity]  # noqa: RUF005
         self.rotation = radians(rotation)
         self.filled = filled
+        self.taper_factor=taper_factor
 
     def draw(self, ctx):
         """Draw ourself."""
@@ -28,8 +30,8 @@ class Hand:
         ctx.translate(0, 0)
         ctx.rotate(self.rotation)
 
-        ctx.move_to(0 - self.width, 0 - self.principal_length)
-        ctx.line_to(self.width, 0 - self.principal_length)
+        ctx.move_to(0 - (self.width * self.taper_factor), 0 - self.principal_length)
+        ctx.line_to(self.width * self.taper_factor, 0 - self.principal_length)
         ctx.line_to(self.width, self.tail_length)
         ctx.line_to(0 - self.width, self.tail_length)
 
