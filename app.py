@@ -140,9 +140,9 @@ class Clock(app.App):
         self.overlays.append(
             EMF(
                 centre=centre,
-                scale=scale,
-                rotation=radians(-self.rotation_offset),
                 colour=rgb_from_degrees(self.colour_offset),
+                rotation=-self.rotation_offset,
+                scale=scale,
             )
         )
 
@@ -156,14 +156,13 @@ class Clock(app.App):
 
         self.overlays.append(
             Hand(
-                rotation=radians(rotation),
-                width=conf["hands"][key]["width"],
-                principal_length=conf["hands"][key]["length"],
-                tail_length=conf["hands-overhang"],
                 colour=colour,
+                filled=True,
                 opacity=0.8,
-                            filled = True
-
+                principal_length=conf["hands"][key]["length"],
+                rotation=rotation,
+                tail_length=conf["hands-overhang"],
+                width=conf["hands"][key]["width"],
             )
         )
 
@@ -196,11 +195,10 @@ class Clock(app.App):
             self.overlays.append(
                 shapes[self.shapes_index](
                     centre=pair,
-                    size=size,
                     colour=colour,
-                    # TODO: move this to the class
-                    rotation=radians(-rotation),
                     filled=filled,
+                    rotation=-rotation,
+                    size=size,
                 )
             )
 

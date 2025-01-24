@@ -4,7 +4,12 @@ from .asset_path import ASSET_PATH
 class Background:
     """Background."""
 
-    def __init__(self, image="emf.png", colour=(0, 0, 0), opacity=0.6):
+    def __init__(
+        self,
+        colour=(0, 0, 0),
+        image="emf.png",
+        opacity=0.6,
+    ):
         """Construct."""
         self.image = image
         self.colour = list(colour) + [opacity]  # noqa: RUF005

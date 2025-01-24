@@ -1,19 +1,22 @@
+from math import radians
+
+
 class EMF:
     """Letters."""
 
     def __init__(  # noqa: PLR0913
         self,
         centre=(0, 0),
-        scale=10.0,
-        rotation=0,
         colour=(255, 0, 0),
-        opacity=0.5,
         line_width=1,
+        opacity=0.5,
+        rotation=0,
+        scale=10.0,
     ):
         """Construct."""
         self.centre = centre
         self.scale = scale
-        self.rotation = rotation
+        self.rotation = radians(rotation)
         self.colour = list(colour) + [opacity]  # noqa: RUF005
         self.line_width = line_width
 
