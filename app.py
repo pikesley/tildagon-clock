@@ -132,10 +132,15 @@ class Clock(app.App):
             -sin(radians(self.rotation_offset)) * conf["brand"]["y-offset"],
             -cos(radians(-self.rotation_offset)) * conf["brand"]["y-offset"],
         )
+
+        scale=conf["brand"]["scale"]
+        if self.notifiers["pulse"]["enabled"]:
+            scale += self.pulse_size
+
         self.overlays.append(
             EMF(
                 centre=centre,
-                scale=conf["brand"]["scale"],
+                scale=scale,
                 rotation=radians(-self.rotation_offset),
                 colour=rgb_from_degrees(self.colour_offset),
             )
@@ -238,7 +243,7 @@ class Clock(app.App):
 
     def rotate_clock_face(self):
         """Rotate the clock face."""
-        self.rotation_offset = (self.rotation_offset - 30) % 360
+        self.rotation_offset = (self.rotation_offset + 30) % 360
         self.set_notifier("rotation")
 
     def scan_buttons(self):
