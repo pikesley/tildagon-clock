@@ -1,5 +1,5 @@
 {
-    "name": "Clock",
+    "name": "Sam's Clock",
     "path": "apps.clock.app",
     "callable": "Clock"
   }

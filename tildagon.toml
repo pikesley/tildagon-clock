@@ -31,10 +31,10 @@ license = "MIT"
 url = "https://www.github.com/pikesley/tildagon-clock"
 
 # Description of your app.  Maximum 140 characters!
-description = "Tell time on the Tildagon."
+description = "Tell time on the Tildagon. See the README for what the buttons do"
 
 # Version number of your app.  If you push a commit where this number is
 # increased, we interpret this as a new version being released.
 #
 # Version number must be an integer!
-version = "0.0.2"
+version = "0.0.3"
