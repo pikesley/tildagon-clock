@@ -1,24 +1,10 @@
 from math import sqrt
 
+from .shape import Shape
 
-class Hexagon:
+
+class Hexagon(Shape):
     """A hexagon."""
-
-    def __init__(  # noqa: PLR0913
-        self,
-        centre=(0, 0),
-        size=10,
-        rotation=0,
-        colour=(255, 0, 0),
-        opacity=0.7,
-        filled=True,  # noqa: FBT002
-    ):
-        """Construct."""
-        self.centre = centre
-        self.size = size
-        self.rotation = rotation
-        self.colour = list(colour) + [opacity]  # noqa: RUF005
-        self.filled = filled
 
     def draw(self, ctx):
         """Draw ourself."""
@@ -35,7 +21,4 @@ class Hexagon:
 
         ctx.close_path()
 
-        if self.filled:
-            ctx.fill()
-        else:
-            ctx.stroke()
+        self.finalise(ctx)

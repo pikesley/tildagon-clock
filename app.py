@@ -133,7 +133,7 @@ class Clock(app.App):
             -cos(radians(-self.rotation_offset)) * conf["brand"]["y-offset"],
         )
 
-        scale=conf["brand"]["scale"]
+        scale = conf["brand"]["scale"]
         if self.notifiers["pulse"]["enabled"]:
             scale += self.pulse_size
 
