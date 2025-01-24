@@ -22,4 +22,6 @@ make mkdir
 make push connect
 ```
 
-Wait while it pushes the code to the badge, then `ctrl-d`, the badge will reboot and you should see a new app called `Clock`
+Wait while it pushes the code to the badge, then `ctrl-d`, the badge will reboot and you should see a new app called `Clock`.
+
+> Note: the badge *must* be connected to some sort of Wifi when the app starts-up so it can do `ntptime.settime()`. Without this it crashes hard.
