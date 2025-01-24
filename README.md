@@ -9,7 +9,11 @@
 | LEFT (E) | rotate the clock (so you can stand the badge on a different side). The 12:00 position is briefly highlighted |
 | CANCEL (F) | minimise app |
 
-## Install locally (not via app store)
+## Install it
+
+It's on the [app store](https://apps.badge.emfcamp.org/) as "Sam's Clock". Or,
+
+## Install from your laptop
 
 You need [`mpremote`](https://docs.micropython.org/en/latest/reference/mpremote.html), then:
 
