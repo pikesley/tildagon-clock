@@ -37,4 +37,4 @@ description = "Tell time on the Tildagon. See the README for what the buttons do
 # increased, we interpret this as a new version being released.
 #
 # Version number must be an integer!
-version = "0.0.5"
+version = "0.0.6"
