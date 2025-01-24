@@ -5,8 +5,10 @@ apps = os.listdir("/apps")
 path = ""
 ASSET_PATH = "apps/clock/"
 
-for a in apps:
-    if a == "pikesley_tildagon_clock":
-        print("found published-app-dir")
-        path = "/apps/" + a
-        ASSET_PATH = path + "/assets/"
+if "pikesley_tildagon_clock" in apps:
+    ASSET_PATH = "/apps/pikesley_tildagon_clock/"
+
+if "clock" in apps:
+    ASSET_PATH = "apps/clock/"
+
+print(ASSET_PATH)
