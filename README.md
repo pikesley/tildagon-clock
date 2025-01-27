@@ -3,10 +3,10 @@
 | Button | |
 |---|---|
 | UP (A) | choose a different marker shape |
-| RIGHT (B) | change the colour-rotation direction |
 | CONFIRM (C) | toggle filled markers |
+| RIGHT (B) | make the markers bigger |
+| LEFT (E) | make the markers smaller |
 | DOWN (D) | rotating spectrum or single (changing) colour |
-| LEFT (E) | rotate the clock (so you can stand the badge on a different side). The 12:00 position is briefly highlighted |
 | CANCEL (F) | minimise app |
 
 ## Install it

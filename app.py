@@ -1,8 +1,9 @@
 import json
 from collections import OrderedDict
-from math import cos, radians, sin
+from math import atan2, cos, degrees, radians, sin
 from time import localtime, ticks_ms
 
+import imu
 import ntptime
 from events.input import BUTTON_TYPES, Buttons
 from system.eventbus import eventbus
@@ -39,9 +40,6 @@ class Clock(app.App):
         # how much screen we use
         self.radius = 118
 
-        # how far the markers are from the edge
-        self.marker_offset = self.radius - conf["marker-size"] - 1
-
         # this increments to rotate the spectrum colours
         self.colour_offset = 0
         # by this much each time
@@ -50,7 +48,6 @@ class Clock(app.App):
         self.led_brightness = 0.5
 
         self.notifiers = {
-            "rotation": {"enabled": False, "timer": 0, "duration": 1000},
             "pulse": {"enabled": False, "timer": 0, "duration": 100},
         }
 
@@ -60,6 +57,10 @@ class Clock(app.App):
         self.new_second = False
         self.previous_seconds = 0
         self.pulse_size = 2
+
+        self.marker_growth_increment = 2
+
+        self.calculate_marker_offset()
 
     def update(self, _):
         """Update."""
@@ -74,6 +75,15 @@ class Clock(app.App):
             else (0 - self.colour_increment)
         )
         self.colour_offset = (self.colour_offset + increment) % 360
+
+        acc = imu.acc_read()
+
+        # weighting is zero when badge is laying down flat,
+        # so rotation_offset is zeroed-out
+        # weight maxes out at one when badge is vertical
+        # so we calculate entire offset from tilt
+        weighting = min(1.0, int(abs(10 - acc[2])) / 9)
+        self.rotation_offset = (degrees(atan2(acc[1], acc[0]))) * weighting
 
         tildagonos.leds.write()
 
@@ -185,13 +195,6 @@ class Clock(app.App):
 
             filled = conf["filled-markers"]
 
-            if self.notifiers["rotation"]["enabled"] and angle == 180:  # noqa: PLR2004
-                pair = (
-                    sin(radians(rotation)) * (self.marker_offset - size),
-                    cos(radians(rotation)) * (self.marker_offset - size),
-                )
-                size = size * 2
-
             self.overlays.append(
                 shapes[self.shapes_index](
                     centre=pair,
@@ -217,6 +220,10 @@ class Clock(app.App):
                 gamma_corrections[int(c * 255 * self.led_brightness)] for c in colour
             ]
 
+    def calculate_marker_offset(self):
+        """Recalculate when markers change size."""
+        self.marker_offset = self.radius - conf["marker-size"] - 1
+
     def invert_fill_markers(self):
         """Invert marker-filling."""
         conf["filled-markers"] = not conf["filled-markers"]
@@ -229,14 +236,16 @@ class Clock(app.App):
         """Increment shapes-index."""
         self.shapes_index = (self.shapes_index + 1) % len(shapes)
 
-    def invert_clockwise_colour_rotation(self):
-        """Invert clockwise colour-rotation."""
-        self.rotate_colours_clockwise = not self.rotate_colours_clockwise
+    def grow_markers(self):
+        """Make the markers bigger."""
+        conf["marker-size"] += self.marker_growth_increment
+        self.calculate_marker_offset()
 
-    def rotate_clock_face(self):
-        """Rotate the clock face."""
-        self.rotation_offset = (self.rotation_offset + 30) % 360
-        self.set_notifier("rotation")
+    def shrink_markers(self):
+        """Make the markers littler."""
+        if conf["marker-size"] > self.marker_growth_increment:
+            conf["marker-size"] -= self.marker_growth_increment
+            self.calculate_marker_offset()
 
     def scan_buttons(self):
         """Read the buttons."""
@@ -245,8 +254,8 @@ class Clock(app.App):
             "CONFIRM": self.invert_fill_markers,
             "UP": self.increment_shapes_index,
             "DOWN": self.invert_full_spectrum,
-            "LEFT": self.rotate_clock_face,
-            "RIGHT": self.invert_clockwise_colour_rotation,
+            "RIGHT": self.grow_markers,
+            "LEFT": self.shrink_markers,
         }
         for button, method in buttons.items():
             if self.button_states.get(BUTTON_TYPES[button]):

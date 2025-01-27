@@ -22,7 +22,7 @@ class Hand:
         self.colour = list(colour) + [opacity]  # noqa: RUF005
         self.rotation = radians(rotation)
         self.filled = filled
-        self.taper_factor=taper_factor
+        self.taper_factor = taper_factor
 
     def draw(self, ctx):
         """Draw ourself."""
