@@ -17,8 +17,8 @@ from .lib.background import Background
 from .lib.emf import EMF
 from .lib.gamma import gamma_corrections
 from .lib.hand import Hand
-from .lib.rgb_from_rotation import rgb_from_degrees
 from .lib.shapes_list import shapes
+from .pikesley.rgb_from_hue.rgb_from_hue import rgb_from_degrees
 
 with open(ASSET_PATH + "conf.json") as j:  # noqa: PTH123
     conf = json.loads(j.read())
@@ -57,6 +57,7 @@ class Clock(app.App):
         self.new_second = False
         self.previous_seconds = 0
         self.pulse_size = 2
+        self.cardinal_point_bump = 4
 
         self.marker_growth_increment = 2
 
@@ -192,6 +193,15 @@ class Clock(app.App):
             size = conf["marker-size"]
             if self.notifiers["pulse"]["enabled"]:
                 size += self.pulse_size
+
+            if angle in [0, 90, 180, 270]:
+                pair = (
+                    sin(radians(rotation))
+                    * (self.marker_offset - self.cardinal_point_bump),
+                    cos(radians(rotation))
+                    * (self.marker_offset - self.cardinal_point_bump),
+                )
+                size += self.cardinal_point_bump
 
             filled = conf["filled-markers"]
 

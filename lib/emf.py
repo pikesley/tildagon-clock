@@ -17,7 +17,7 @@ class EMF:
         self.centre = centre
         self.scale = scale
         self.rotation = radians(rotation)
-        self.colour = list(colour) + [opacity]  # noqa: RUF005
+        self.colour = list(colour) + [opacity]
         self.line_width = line_width
 
     def draw(self, ctx):

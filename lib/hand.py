@@ -19,7 +19,7 @@ class Hand:
         self.principal_length = principal_length
         self.tail_length = tail_length
         self.width = width / 2
-        self.colour = list(colour) + [opacity]  # noqa: RUF005
+        self.colour = list(colour) + [opacity]
         self.rotation = radians(rotation)
         self.filled = filled
         self.taper_factor = taper_factor

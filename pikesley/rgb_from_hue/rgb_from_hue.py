@@ -29,7 +29,7 @@ def get_sector(degrees):
 
 def rgb_from_degrees(degrees):
     """Get RGB from degrees of rotation."""
-    sector = get_sector(degrees % 360)
+    sector = get_sector(degrees)
     segment = segments[sector]
     offset = (1 / 60) * (degrees - segment["offset"])
 
@@ -37,3 +37,8 @@ def rgb_from_degrees(degrees):
         offset = 1 - offset
 
     return [segment.get(x, offset) for x in ["red", "green", "blue"]]
+
+
+def rgb_from_hue(decimal):
+    """Get RGB from hue value (0.0 - 1.0)."""
+    return rgb_from_degrees((decimal * 360) % 360)

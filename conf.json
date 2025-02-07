@@ -1,5 +1,13 @@
 {
-  "background-colour": [0, 0, 0],
+  "background-colour": [
+    0,
+    0,
+    0
+  ],
+  "brand": {
+    "scale": 8,
+    "y-offset": 40
+  },
   "filled-markers": false,
   "full-spectrum": true,
   "hands": {
@@ -17,10 +25,6 @@
     }
   },
   "hands-overhang": 20,
-  "brand": {
-    "scale": 8,
-    "y-offset": 40
-  },
-  "marker-size": 14,
+  "marker-size": 10,
   "overtick-amount": 1.5
 }

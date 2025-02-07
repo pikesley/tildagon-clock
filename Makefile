@@ -2,7 +2,7 @@ APP = $(shell basename $$(pwd))
 
 all: format test clean
 
-push:
+push: convert-conf
 	python -m mpremote cp -r * :/apps/${APP}/
 
 mkdir:
@@ -11,6 +11,11 @@ mkdir:
 connect:
 	python -m mpremote
 
+deploy: push connect
+
+convert-conf:
+	@python scripts/conf_yaml_to_json.py
+
 format:
 	ruff format
 	ruff check --fix
@@ -18,6 +23,7 @@ format:
 clean:
 	@find . -depth -name __pycache__ -exec rm -fr {} \;
 	@find . -depth -name .ruff_cache -exec rm -fr {} \;
+	@find . -depth -name .pytest_cache -exec rm -fr {} \;
 
 test:
 	python -m pytest \
@@ -26,6 +32,10 @@ test:
 		--capture no \
 		--exitfirst \
 		--last-failed
+
+install: guard-LIBRARY
+	mkdir -p pikesley
+	rsync --archive --verbose --exclude tests ../pikesley/${LIBRARY} pikesley/
 
 build:
 	docker build \
@@ -42,3 +52,12 @@ run:
 		--rm \
 		${APP} \
 		bash
+
+guard-%:
+	@if [ -z "${${*}}" ] ; \
+    then \
+        echo "You must provide the ${*} variable" ; \
+        exit 1 ; \
+    fi
+
+-include Makefile.local

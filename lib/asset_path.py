@@ -10,5 +10,3 @@ if "pikesley_tildagon_clock" in apps:
 
 if "clock" in apps:
     ASSET_PATH = "apps/clock/"
-
-print(ASSET_PATH)

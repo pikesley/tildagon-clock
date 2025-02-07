@@ -6,7 +6,7 @@ from .shape import Shape
 class Triangle(Shape):
     """A triangle."""
 
-    def draw(self, ctx):
+    def draw_lines(self, ctx):
         """Draw ourself."""
         y_offset = sqrt(3) * (self.size / 2)
         max_y = 0 - y_offset
@@ -18,13 +18,8 @@ class Triangle(Shape):
         apex = (0, max_y)
         left_vertex = (min_x, min_y)
         right_vertex = (max_x, min_y)
-
-        ctx.rgba(*self.colour).begin_path()
-        ctx.translate(*self.centre)
-        ctx.rotate(self.rotation)
         ctx.move_to(*apex)
         ctx.line_to(*left_vertex)
         ctx.line_to(*right_vertex)
-        ctx.close_path()
 
-        self.finalise(ctx)
+        ctx.close_path()
