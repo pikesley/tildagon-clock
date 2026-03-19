@@ -24,7 +24,7 @@ segments = get_segments()
 
 def get_sector(degrees):
     """Determine which sector we're in."""
-    return int(floor(degrees / 60))
+    return floor(degrees / 60)
 
 
 def rgb_from_degrees(degrees):

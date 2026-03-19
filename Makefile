@@ -6,12 +6,12 @@ push: convert-conf
 	python -m mpremote cp -r * :/apps/${APP}/
 
 mkdir:
-	python -m mpremote mkdir apps/${APP}
+	-python -m mpremote mkdir apps/${APP}
 
 connect:
 	python -m mpremote
 
-deploy: push connect
+deploy: mkdir push connect
 
 convert-conf:
 	@python scripts/conf_yaml_to_json.py
