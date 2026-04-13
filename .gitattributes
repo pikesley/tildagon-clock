@@ -1,11 +1,11 @@
-Dockerfile
-LICENSE.md
-Makefile
-README.md
-conf.json
-conf.yaml
-includes
-requirements.txt
-ruff.toml
-scripts
-tests
+/Dockerfile export-ignore
+/LICENSE.md export-ignore
+/Makefile export-ignore
+/README.md export-ignore
+/conf.json export-ignore
+/conf.yaml export-ignore
+/includes export-ignore
+/requirements.txt export-ignore
+/ruff.toml export-ignore
+/scripts export-ignore
+/tests export-ignore
