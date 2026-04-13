@@ -11,15 +11,13 @@ from tildagonos import tildagonos
 
 import app
 
-from .common.conf import conf
 from .common.gamma import gamma_corrections
 from .common.rgb_from_hue import rgb_from_degrees
 from .lib.background import Background
+from .lib.conf import conf
 from .lib.emf import EMF
 from .lib.hand import Hand
 from .lib.shapes_list import shapes
-
-config = conf(__file__)
 
 
 class Clock(app.App):
@@ -97,7 +95,7 @@ class Clock(app.App):
         if 4 <= month <= 10:
             self.hours = (self.hours + 1) % 24
 
-        self.overlays.append(Background(colour=config["background-colour"]))
+        self.overlays.append(Background(colour=conf["background-colour"]))
 
         self.draw_brand()
 
@@ -136,7 +134,7 @@ class Clock(app.App):
         if self.seconds != self.previous_seconds:
             self.new_second = True
             self.previous_seconds = self.seconds
-            overtick = config["overtick-amount"]
+            overtick = conf["overtick-amount"]
         self.new_second = False
 
         return overtick
@@ -144,11 +142,11 @@ class Clock(app.App):
     def draw_brand(self):
         """Write `EMF`."""
         centre = (
-            -sin(radians(self.rotation_offset)) * config["brand"]["y-offset"],
-            -cos(radians(-self.rotation_offset)) * config["brand"]["y-offset"],
+            -sin(radians(self.rotation_offset)) * conf["brand"]["y-offset"],
+            -cos(radians(-self.rotation_offset)) * conf["brand"]["y-offset"],
         )
 
-        scale = config["brand"]["scale"]
+        scale = conf["brand"]["scale"]
         if self.notifiers["pulse"]["enabled"]:
             scale += self.pulse_size
 
@@ -166,7 +164,7 @@ class Clock(app.App):
         rotation = rotation - self.rotation_offset
 
         colour = rgb_from_degrees(self.colour_offset % 360)
-        if config["full-spectrum"]:
+        if conf["full-spectrum"]:
             colour = rgb_from_degrees((180 - rotation + self.colour_offset) % 360)
 
         self.overlays.append(
@@ -174,10 +172,10 @@ class Clock(app.App):
                 colour=colour,
                 filled=True,
                 opacity=0.8,
-                principal_length=config["hands"][key]["length"],
+                principal_length=conf["hands"][key]["length"],
                 rotation=rotation,
-                tail_length=config["hands-overhang"],
-                width=config["hands"][key]["width"],
+                tail_length=conf["hands-overhang"],
+                width=conf["hands"][key]["width"],
             )
         )
 
@@ -191,10 +189,10 @@ class Clock(app.App):
             )
 
             colour = rgb_from_degrees(self.colour_offset % 360)
-            if config["full-spectrum"]:
+            if conf["full-spectrum"]:
                 colour = rgb_from_degrees((rotation + self.colour_offset) % 360)
 
-            size = config["marker-size"]
+            size = conf["marker-size"]
             if self.notifiers["pulse"]["enabled"]:
                 size += self.pulse_size
 
@@ -207,7 +205,7 @@ class Clock(app.App):
                 )
                 size += self.cardinal_point_bump
 
-            filled = config["filled-markers"]
+            filled = conf["filled-markers"]
 
             self.overlays.append(
                 shapes[self.shapes_index](
@@ -226,7 +224,7 @@ class Clock(app.App):
 
         for i in range(12):
             colour = rgb_from_degrees(self.colour_offset % 360)
-            if config["full-spectrum"]:
+            if conf["full-spectrum"]:
                 # 30 degrees per light
                 # 15 degree offset to be between the markers
                 # 180 offset because the goddamn screen is upside-down
@@ -239,15 +237,15 @@ class Clock(app.App):
 
     def calculate_marker_offset(self):
         """Recalculate when markers change size."""
-        self.marker_offset = self.radius - config["marker-size"] - 1
+        self.marker_offset = self.radius - conf["marker-size"] - 1
 
     def invert_fill_markers(self):
         """Invert marker-filling."""
-        config["filled-markers"] = not config["filled-markers"]
+        conf["filled-markers"] = not conf["filled-markers"]
 
     def invert_full_spectrum(self):
         """Invert full-spectrum."""
-        config["full-spectrum"] = not config["full-spectrum"]
+        conf["full-spectrum"] = not conf["full-spectrum"]
 
     def increment_shapes_index(self):
         """Increment shapes-index."""
@@ -255,13 +253,13 @@ class Clock(app.App):
 
     def grow_markers(self):
         """Make the markers bigger."""
-        config["marker-size"] += self.marker_growth_increment
+        conf["marker-size"] += self.marker_growth_increment
         self.calculate_marker_offset()
 
     def shrink_markers(self):
         """Make the markers littler."""
-        if config["marker-size"] > self.marker_growth_increment:
-            config["marker-size"] -= self.marker_growth_increment
+        if conf["marker-size"] > self.marker_growth_increment:
+            conf["marker-size"] -= self.marker_growth_increment
             self.calculate_marker_offset()
 
     def scan_buttons(self):
