@@ -5,7 +5,7 @@ import os
 def asset_path(app_name):
     """Determine asset_path."""
     try:
-        apps = os.listdir("/apps")
+        apps = os.listdir("/apps")  # noqa: PTH208
     except FileNotFoundError:
         apps = []
     ass_path = ""

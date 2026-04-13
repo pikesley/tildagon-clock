@@ -3,7 +3,7 @@ APP = $(shell basename $$(pwd))
 all: format test clean
 
 push: convert-conf
-	python -m mpremote cp -r * :/apps/${APP}/
+	python scripts/pusher.py
 
 mkdir:
 	-python -m mpremote mkdir apps/${APP}
@@ -13,8 +13,14 @@ connect:
 
 deploy: mkdir push connect
 
+uninstall:
+	python -m mpremote fs rm -r :/apps/${APP}
+
 convert-conf:
 	@python scripts/conf_yaml_to_json.py
+
+test-release:
+	bash scripts/test-release.sh
 
 format:
 	ruff format
